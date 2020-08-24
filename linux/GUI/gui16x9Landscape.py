@@ -9,6 +9,8 @@ IN LANDSCAPE
 from tkinter import *
 from datetime import datetime
 from datetime import timedelta
+import pandas as pd
+from datetime import date as dt
 from apiclient.discovery import build
 from google_auth_oauthlib.flow import InstalledAppFlow
 from os import path
@@ -178,46 +180,20 @@ def getWeather() :
     return(icon, temp, place)
 
 def getCOVID19Info() :
-    extract_contents = lambda row: [x.text.replace('\n', '') for x in row]
-    URL = 'https://www.mohfw.gov.in/'
+    date = dt.today() 
+    date = date - timedelta(days = 1) 
+    date = str(date).split('-')
+    date = (date[1] + '-') + ((date[2] + '-') + (date[0] + '.csv'))
+    url = 'https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_daily_reports/'
+    url = url + date
 
-    SHORT_HEADERS = ['SNo', 'State','Indian-Confirmed',
-                     'Foreign-Confirmed','Cured','Death']
+    df = pd.read_csv(url)
+    df = df[df['Country_Region'] == 'India']
+    deaths = 'Dead: ' + str(int(df['Deaths'].sum()))
+    recovered = 'Recovered: ' + str(int(df['Recovered'].sum()))
+    active = 'Infected: ' + str(int(df['Active'].sum()))
+    return(active, recovered, deaths)
 
-    response = requests.get(URL).content
-    soup = BeautifulSoup(response, 'html.parser')
-    header = extract_contents(soup.tr.find_all('th'))
-
-    stats = []
-    all_rows = soup.find_all('tr')
-
-    for row in all_rows:
-        stat = extract_contents(row.find_all('td'))
-        if stat:
-            if len(stat) == 5:
-                # last row
-                stat = ['', *stat]
-                stats.append(stat)
-            elif len(stat) == 6:
-                stats.append(stat)
-
-    stats[-1][1] = "Total Cases"
-
-    stats.remove(stats[-1])
-
-    infected=0
-    dead=0
-    recovered=0
-
-    for i in range(0, len(stats)) :
-        infected = infected + int(stats[i][3])
-        dead = dead + int(stats[i][5])
-        recovered = recovered + int(stats[i][4])
-
-    infected = 'Infected : ' + str(infected)
-    dead = 'Dead : ' + str(dead)
-    recovered = 'Recovered : ' + str(recovered)
-    return(infected, dead, recovered)
 
 eventHeadingLabel = Label(root, text="EVENTS", fg="#FFFFFF", bg="#000000", font=("helvetica " + str(int(fontSizeMultiplier * 38))), anchor=W, justify=LEFT)
 newsHeadingLabel = Label(root, text="NEWS", fg="#FFFFFF", bg="#000000", font=("helvetica " + str(int(fontSizeMultiplier * 38))), anchor=W, justify=LEFT)
@@ -231,8 +207,8 @@ def Draw(e1=None, e2=None, eventLabels=True) :
     try :
         if(eventLabels is True) :
             eve = getEvents()
-            event1 = eve[0]
-            event2 = eve[1]
+            event1 = eve[1]
+            event2 = eve[0]
             covid19Info = getCOVID19Info()
             weatherInfo = getWeather()
             time = getTime()
@@ -257,30 +233,56 @@ def Draw(e1=None, e2=None, eventLabels=True) :
             if(len(headline1)==1) :
                 newsLabel1 = Label(root, text=("1. " + headline1[0]), fg="#FFFFFF", bg="#000000", font=("helvetica " + str(int(fontSizeMultiplier * 20))), anchor=W, justify=LEFT)
                 newsLabel1.place(x=(60 * xCoordsMultiplier), y=(700 * yCoordsMultiplier))
+                if(len(headline2)==1) :
+                    newsLabel3 = Label(root, text=("2. " + headline2[0]), fg="#FFFFFF", bg="#000000", font=("helvetica " + str(int(fontSizeMultiplier * 20))), anchor=W, justify=LEFT)
+                    newsLabel3.place(x=(60 * xCoordsMultiplier), y=(800 * yCoordsMultiplier))
+                elif(len(headline2)==2) :
+                    newsLabel3 = Label(root, text=("2. " + headline2[0]), fg="#FFFFFF", bg="#000000", font=("helvetica " + str(int(fontSizeMultiplier * 20))), anchor=W, justify=LEFT)
+                    newsLabel4 = Label(root, text=headline2[1], fg="#FFFFFF", bg="#000000", font=("helvetica " + str(int(fontSizeMultiplier * 20))), anchor=W, justify=LEFT)
+                    newsLabel3.place(x=(60 * xCoordsMultiplier), y=(800 * yCoordsMultiplier))
+                    newsLabel4.place(x=(60 * xCoordsMultiplier), y=(850 * yCoordsMultiplier))
+                else :
+                    newsLabel3 = Label(root, text=("2. " + headline2[0]), fg="#FFFFFF", bg="#000000", font=("helvetica " + str(int(fontSizeMultiplier * 20))), anchor=W, justify=LEFT)
+                    newsLabel4 = Label(root, text=(headline2[1] + "..."), fg="#FFFFFF", bg="#000000", font=("helvetica " + str(int(fontSizeMultiplier * 20))), anchor=W, justify=LEFT)
+                    newsLabel3.place(x=(60 * xCoordsMultiplier), y=(800 * yCoordsMultiplier))
+                    newsLabel4.place(x=(60 * xCoordsMultiplier), y=(850 * yCoordsMultiplier))
+                
             elif(len(headline1)==2) :
                 newsLabel1 = Label(root, text=("1. " + headline1[0]), fg="#FFFFFF", bg="#000000", font=("helvetica " + str(int(fontSizeMultiplier * 20))), anchor=W, justify=LEFT)
                 newsLabel2 = Label(root, text=headline1[1], fg="#FFFFFF", bg="#000000", font=("helvetica " + str(int(fontSizeMultiplier * 20))), anchor=W, justify=LEFT)
                 newsLabel1.place(x=(60 * xCoordsMultiplier), y=(700 * yCoordsMultiplier))
                 newsLabel2.place(x=(60 * xCoordsMultiplier), y=(750 * yCoordsMultiplier))
+                if(len(headline2)==1) :
+                    newsLabel3 = Label(root, text=("2. " + headline2[0]), fg="#FFFFFF", bg="#000000", font=("helvetica " + str(int(fontSizeMultiplier * 20))), anchor=W, justify=LEFT)
+                    newsLabel3.place(x=(60 * xCoordsMultiplier), y=(850 * yCoordsMultiplier))
+                elif(len(headline2)==2) :
+                    newsLabel3 = Label(root, text=("2. " + headline2[0]), fg="#FFFFFF", bg="#000000", font=("helvetica " + str(int(fontSizeMultiplier * 20))), anchor=W, justify=LEFT)
+                    newsLabel4 = Label(root, text=headline2[1], fg="#FFFFFF", bg="#000000", font=("helvetica " + str(int(fontSizeMultiplier * 20))), anchor=W, justify=LEFT)
+                    newsLabel3.place(x=(60 * xCoordsMultiplier), y=(850 * yCoordsMultiplier))
+                    newsLabel4.place(x=(60 * xCoordsMultiplier), y=(900 * yCoordsMultiplier))
+                else :
+                    newsLabel3 = Label(root, text=("2. " + headline2[0]), fg="#FFFFFF", bg="#000000", font=("helvetica " + str(int(fontSizeMultiplier * 20))), anchor=W, justify=LEFT)
+                    newsLabel4 = Label(root, text=(headline2[1] + "..."), fg="#FFFFFF", bg="#000000", font=("helvetica " + str(int(fontSizeMultiplier * 20))), anchor=W, justify=LEFT)
+                    newsLabel3.place(x=(60 * xCoordsMultiplier), y=(850 * yCoordsMultiplier))
+                    newsLabel4.place(x=(60 * xCoordsMultiplier), y=(900 * yCoordsMultiplier))
             else :
                 newsLabel1 = Label(root, text=("1. " + headline1[0]), fg="#FFFFFF", bg="#000000", font=("helvetica " + str(int(fontSizeMultiplier * 20))), anchor=W, justify=LEFT)
                 newsLabel2 = Label(root, text=(headline1[1] + "..."), fg="#FFFFFF", bg="#000000", font=("helvetica " + str(int(fontSizeMultiplier * 20))), anchor=W, justify=LEFT)
                 newsLabel1.place(x=(60 * xCoordsMultiplier), y=(700 * yCoordsMultiplier))
                 newsLabel2.place(x=(60 * xCoordsMultiplier), y=(750 * yCoordsMultiplier))
-
-            if(len(headline2)==1) :
-                newsLabel3 = Label(root, text=("2. " + headline2[0]), fg="#FFFFFF", bg="#000000", font=("helvetica " + str(int(fontSizeMultiplier * 20))), anchor=W, justify=LEFT)
-                newsLabel3.place(x=(60 * xCoordsMultiplier), y=(850 * yCoordsMultiplier))
-            elif(len(headline2)==2) :
-                newsLabel3 = Label(root, text=("2. " + headline2[0]), fg="#FFFFFF", bg="#000000", font=("helvetica " + str(int(fontSizeMultiplier * 20))), anchor=W, justify=LEFT)
-                newsLabel4 = Label(root, text=headline2[1], fg="#FFFFFF", bg="#000000", font=("helvetica " + str(int(fontSizeMultiplier * 20))), anchor=W, justify=LEFT)
-                newsLabel3.place(x=(60 * xCoordsMultiplier), y=(850 * yCoordsMultiplier))
-                newsLabel4.place(x=(60 * xCoordsMultiplier), y=(900 * yCoordsMultiplier))
-            else :
-                newsLabel3 = Label(root, text=("2. " + headline2[0]), fg="#FFFFFF", bg="#000000", font=("helvetica " + str(int(fontSizeMultiplier * 20))), anchor=W, justify=LEFT)
-                newsLabel4 = Label(root, text=(headline2[1] + "..."), fg="#FFFFFF", bg="#000000", font=("helvetica " + str(int(fontSizeMultiplier * 20))), anchor=W, justify=LEFT)
-                newsLabel3.place(x=(60 * xCoordsMultiplier), y=(850 * yCoordsMultiplier))
-                newsLabel4.place(x=(60 * xCoordsMultiplier), y=(900 * yCoordsMultiplier))
+                if(len(headline2)==1) :
+                    newsLabel3 = Label(root, text=("2. " + headline2[0]), fg="#FFFFFF", bg="#000000", font=("helvetica " + str(int(fontSizeMultiplier * 20))), anchor=W, justify=LEFT)
+                    newsLabel3.place(x=(60 * xCoordsMultiplier), y=(850 * yCoordsMultiplier))
+                elif(len(headline2)==2) :
+                    newsLabel3 = Label(root, text=("2. " + headline2[0]), fg="#FFFFFF", bg="#000000", font=("helvetica " + str(int(fontSizeMultiplier * 20))), anchor=W, justify=LEFT)
+                    newsLabel4 = Label(root, text=headline2[1], fg="#FFFFFF", bg="#000000", font=("helvetica " + str(int(fontSizeMultiplier * 20))), anchor=W, justify=LEFT)
+                    newsLabel3.place(x=(60 * xCoordsMultiplier), y=(850 * yCoordsMultiplier))
+                    newsLabel4.place(x=(60 * xCoordsMultiplier), y=(900 * yCoordsMultiplier))
+                else :
+                    newsLabel3 = Label(root, text=("2. " + headline2[0]), fg="#FFFFFF", bg="#000000", font=("helvetica " + str(int(fontSizeMultiplier * 20))), anchor=W, justify=LEFT)
+                    newsLabel4 = Label(root, text=(headline2[1] + "..."), fg="#FFFFFF", bg="#000000", font=("helvetica " + str(int(fontSizeMultiplier * 20))), anchor=W, justify=LEFT)
+                    newsLabel3.place(x=(60 * xCoordsMultiplier), y=(850 * yCoordsMultiplier))
+                    newsLabel4.place(x=(60 * xCoordsMultiplier), y=(900 * yCoordsMultiplier))
 
             dateLabel.place(x=(60 * xCoordsMultiplier), y=(30 * yCoordsMultiplier))
             timeLabel.place(x=(60 * xCoordsMultiplier), y=(80 * yCoordsMultiplier))
@@ -323,39 +325,65 @@ def Draw(e1=None, e2=None, eventLabels=True) :
             if(len(headline1)==1) :
                 newsLabel1 = Label(root, text=("1. " + headline1[0]), fg="#FFFFFF", bg="#000000", font=("helvetica " + str(int(fontSizeMultiplier * 20))), anchor=W, justify=LEFT)
                 newsLabel1.place(x=(60 * xCoordsMultiplier), y=(700 * yCoordsMultiplier))
+                if(len(headline2)==1) :
+                    newsLabel3 = Label(root, text=("2. " + headline2[0]), fg="#FFFFFF", bg="#000000", font=("helvetica " + str(int(fontSizeMultiplier * 20))), anchor=W, justify=LEFT)
+                    newsLabel3.place(x=(60 * xCoordsMultiplier), y=(800 * yCoordsMultiplier))
+                elif(len(headline2)==2) :
+                    newsLabel3 = Label(root, text=("2. " + headline2[0]), fg="#FFFFFF", bg="#000000", font=("helvetica " + str(int(fontSizeMultiplier * 20))), anchor=W, justify=LEFT)
+                    newsLabel4 = Label(root, text=headline2[1], fg="#FFFFFF", bg="#000000", font=("helvetica " + str(int(fontSizeMultiplier * 20))), anchor=W, justify=LEFT)
+                    newsLabel3.place(x=(60 * xCoordsMultiplier), y=(800 * yCoordsMultiplier))
+                    newsLabel4.place(x=(60 * xCoordsMultiplier), y=(850 * yCoordsMultiplier))
+                else :
+                    newsLabel3 = Label(root, text=("2. " + headline2[0]), fg="#FFFFFF", bg="#000000", font=("helvetica " + str(int(fontSizeMultiplier * 20))), anchor=W, justify=LEFT)
+                    newsLabel4 = Label(root, text=(headline2[1] + "..."), fg="#FFFFFF", bg="#000000", font=("helvetica " + str(int(fontSizeMultiplier * 20))), anchor=W, justify=LEFT)
+                    newsLabel3.place(x=(60 * xCoordsMultiplier), y=(800 * yCoordsMultiplier))
+                    newsLabel4.place(x=(60 * xCoordsMultiplier), y=(850 * yCoordsMultiplier))
+                
             elif(len(headline1)==2) :
                 newsLabel1 = Label(root, text=("1. " + headline1[0]), fg="#FFFFFF", bg="#000000", font=("helvetica " + str(int(fontSizeMultiplier * 20))), anchor=W, justify=LEFT)
                 newsLabel2 = Label(root, text=headline1[1], fg="#FFFFFF", bg="#000000", font=("helvetica " + str(int(fontSizeMultiplier * 20))), anchor=W, justify=LEFT)
                 newsLabel1.place(x=(60 * xCoordsMultiplier), y=(700 * yCoordsMultiplier))
                 newsLabel2.place(x=(60 * xCoordsMultiplier), y=(750 * yCoordsMultiplier))
+                if(len(headline2)==1) :
+                    newsLabel3 = Label(root, text=("2. " + headline2[0]), fg="#FFFFFF", bg="#000000", font=("helvetica " + str(int(fontSizeMultiplier * 20))), anchor=W, justify=LEFT)
+                    newsLabel3.place(x=(60 * xCoordsMultiplier), y=(850 * yCoordsMultiplier))
+                elif(len(headline2)==2) :
+                    newsLabel3 = Label(root, text=("2. " + headline2[0]), fg="#FFFFFF", bg="#000000", font=("helvetica " + str(int(fontSizeMultiplier * 20))), anchor=W, justify=LEFT)
+                    newsLabel4 = Label(root, text=headline2[1], fg="#FFFFFF", bg="#000000", font=("helvetica " + str(int(fontSizeMultiplier * 20))), anchor=W, justify=LEFT)
+                    newsLabel3.place(x=(60 * xCoordsMultiplier), y=(850 * yCoordsMultiplier))
+                    newsLabel4.place(x=(60 * xCoordsMultiplier), y=(900 * yCoordsMultiplier))
+                else :
+                    newsLabel3 = Label(root, text=("2. " + headline2[0]), fg="#FFFFFF", bg="#000000", font=("helvetica " + str(int(fontSizeMultiplier * 20))), anchor=W, justify=LEFT)
+                    newsLabel4 = Label(root, text=(headline2[1] + "..."), fg="#FFFFFF", bg="#000000", font=("helvetica " + str(int(fontSizeMultiplier * 20))), anchor=W, justify=LEFT)
+                    newsLabel3.place(x=(60 * xCoordsMultiplier), y=(850 * yCoordsMultiplier))
+                    newsLabel4.place(x=(60 * xCoordsMultiplier), y=(900 * yCoordsMultiplier))
             else :
                 newsLabel1 = Label(root, text=("1. " + headline1[0]), fg="#FFFFFF", bg="#000000", font=("helvetica " + str(int(fontSizeMultiplier * 20))), anchor=W, justify=LEFT)
                 newsLabel2 = Label(root, text=(headline1[1] + "..."), fg="#FFFFFF", bg="#000000", font=("helvetica " + str(int(fontSizeMultiplier * 20))), anchor=W, justify=LEFT)
                 newsLabel1.place(x=(60 * xCoordsMultiplier), y=(700 * yCoordsMultiplier))
                 newsLabel2.place(x=(60 * xCoordsMultiplier), y=(750 * yCoordsMultiplier))
-
-            if(len(headline2)==1) :
-                newsLabel3 = Label(root, text=("2. " + headline2[0]), fg="#FFFFFF", bg="#000000", font=("helvetica " + str(int(fontSizeMultiplier * 20))), anchor=W, justify=LEFT)
-                newsLabel3.place(x=(60 * xCoordsMultiplier), y=(850 * yCoordsMultiplier))
-            elif(len(headline2)==2) :
-                newsLabel3 = Label(root, text=("2. " + headline2[0]), fg="#FFFFFF", bg="#000000", font=("helvetica " + str(int(fontSizeMultiplier * 20))), anchor=W, justify=LEFT)
-                newsLabel4 = Label(root, text=headline2[1], fg="#FFFFFF", bg="#000000", font=("helvetica " + str(int(fontSizeMultiplier * 20))), anchor=W, justify=LEFT)
-                newsLabel3.place(x=(60 * xCoordsMultiplier), y=(850 * yCoordsMultiplier))
-                newsLabel4.place(x=(60 * xCoordsMultiplier), y=(900 * yCoordsMultiplier))
-            else :
-                newsLabel3 = Label(root, text=("2. " + headline2[0]), fg="#FFFFFF", bg="#000000", font=("helvetica " + str(int(fontSizeMultiplier * 20))), anchor=W, justify=LEFT)
-                newsLabel4 = Label(root, text=(headline2[1] + "..."), fg="#FFFFFF", bg="#000000", font=("helvetica " + str(int(fontSizeMultiplier * 20))), anchor=W, justify=LEFT)
-                newsLabel3.place(x=(60 * xCoordsMultiplier), y=(850 * yCoordsMultiplier))
-                newsLabel4.place(x=(60 * xCoordsMultiplier), y=(900 * yCoordsMultiplier))
+                if(len(headline2)==1) :
+                    newsLabel3 = Label(root, text=("2. " + headline2[0]), fg="#FFFFFF", bg="#000000", font=("helvetica " + str(int(fontSizeMultiplier * 20))), anchor=W, justify=LEFT)
+                    newsLabel3.place(x=(60 * xCoordsMultiplier), y=(850 * yCoordsMultiplier))
+                elif(len(headline2)==2) :
+                    newsLabel3 = Label(root, text=("2. " + headline2[0]), fg="#FFFFFF", bg="#000000", font=("helvetica " + str(int(fontSizeMultiplier * 20))), anchor=W, justify=LEFT)
+                    newsLabel4 = Label(root, text=headline2[1], fg="#FFFFFF", bg="#000000", font=("helvetica " + str(int(fontSizeMultiplier * 20))), anchor=W, justify=LEFT)
+                    newsLabel3.place(x=(60 * xCoordsMultiplier), y=(850 * yCoordsMultiplier))
+                    newsLabel4.place(x=(60 * xCoordsMultiplier), y=(900 * yCoordsMultiplier))
+                else :
+                    newsLabel3 = Label(root, text=("2. " + headline2[0]), fg="#FFFFFF", bg="#000000", font=("helvetica " + str(int(fontSizeMultiplier * 20))), anchor=W, justify=LEFT)
+                    newsLabel4 = Label(root, text=(headline2[1] + "..."), fg="#FFFFFF", bg="#000000", font=("helvetica " + str(int(fontSizeMultiplier * 20))), anchor=W, justify=LEFT)
+                    newsLabel3.place(x=(60 * xCoordsMultiplier), y=(850 * yCoordsMultiplier))
+                    newsLabel4.place(x=(60 * xCoordsMultiplier), y=(900 * yCoordsMultiplier))
 
             dateLabel.place(x=(60 * xCoordsMultiplier), y=(30 * yCoordsMultiplier))
             timeLabel.place(x=(60 * xCoordsMultiplier), y=(80 * yCoordsMultiplier))
             temperatureLabel.place(x=(1714 * xCoordsMultiplier), y=(45 * yCoordsMultiplier))
             weatherIconPanel.place(x=(1564 * xCoordsMultiplier), y=(40 * yCoordsMultiplier))
             placeLabel.place(x=int((((1920 - ((len(weatherInfo[2]) * (17 * fontSizeMultiplier) + 106))) * xCoordsMultiplier))), y=(200 * yCoordsMultiplier))
-            Infected.place(x=int((((1920 - ((len(covid19Info[0]) * (9 * fontSizeMultiplier) + 106))) * xCoordsMultiplier))), y=(550 * yCoordsMultiplier))
-            Dead.place(x=int((((1920 - ((len(covid19Info[1]) * (9 * fontSizeMultiplier) + 106))) * xCoordsMultiplier))), y=(600 * yCoordsMultiplier))
-            Recovered.place(x=int(((((1920 - ((len(covid19Info[2]) * (9 * fontSizeMultiplier) + 106))) - 20 ) * xCoordsMultiplier))), y=(650 * yCoordsMultiplier))
+            Infected.place(x=(1640 * xCoordsMultiplier), y=(550 * yCoordsMultiplier))
+            Dead.place(x=(1640 * xCoordsMultiplier), y=(600 * yCoordsMultiplier))
+            Recovered.place(x=(1640 * xCoordsMultiplier), y=(650 * yCoordsMultiplier))
             if((len(headline1)==2)and(len(headline2)==2)) :
                 root.after(20000, lambda : Delete(dateLabel, timeLabel, w3=temperatureLabel, w4=weatherIconPanel, w5=placeLabel, w6=Infected, w7=Dead, w8=Recovered, w9=newsLabel1, w10=newsLabel3, w11=newsLabel2, w12=newsLabel4, w13=e1, w14=e2))
             elif(len(headline1)==2) :
