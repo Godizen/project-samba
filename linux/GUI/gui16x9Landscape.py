@@ -21,8 +21,6 @@ import pickle
 import textwrap
 import requests
 import pycountry
-import requests
-from bs4 import BeautifulSoup
 
 if path.exists("token.pkl") == True:
     credentials = pickle.load(open("token.pkl", "rb"))
