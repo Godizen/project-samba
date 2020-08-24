@@ -22,6 +22,9 @@ import numpy as np
 import time
 import requests
 from bs4 import BeautifulSoup
+from datetime import date
+from datetime import timedelta 
+
 
 
 
@@ -168,35 +171,20 @@ def joke() :
     speak(joke)
 
 def COVID19UPDATE() :
-    extract_contents = lambda row: [x.text.replace('\n', '') for x in row]
-    URL = 'https://www.mohfw.gov.in/'
+    date = date.today() 
+    date = date - timedelta(days = 1) 
+    date = str(date).split('-')
+    date = (date[1] + '-') + ((date[2] + '-') + (date[0] + '.csv'))
+    url = 'https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_daily_reports/'
+    url = url + date
 
-    SHORT_HEADERS = ['SNo', 'State','Indian-Confirmed',
-                     'Foreign-Confirmed','Cured','Death']
-
-    response = requests.get(URL).content
-    soup = BeautifulSoup(response, 'html.parser')
-    header = extract_contents(soup.tr.find_all('th'))
-
-    stats = []
-    all_rows = soup.find_all('tr')
-
-    for row in all_rows:
-        stat = extract_contents(row.find_all('td'))
-        if stat:
-            if len(stat) == 5:
-                # last row
-                stat = ['', *stat]
-                stats.append(stat)
-            elif len(stat) == 6:
-                stats.append(stat)
-
-    stats[-1][1] = "Total Cases"
-    stats.remove(stats[-1])
-    data=0
-    for i in range(0, len(stats)) :
-        data = str(data + int(stats[i][3]))
-    data = data + ' active coronavirus cases in India'
+    df = pd.read_csv(url)
+    df = df[df['Country_Region'] == 'India']
+    deaths = int(df['Deaths'].sum())
+    recovered = int(df['Recovered'].sum())
+    active = int(df['Active'].sum())
+    data = (str(active) + ' active cases in India. ') + ((str(recovered) + ' people have recovered. ') + (str(deaths) + ' people have succumbed to the coronavirus.'))
+    
     print(data)
     speak(data)
 
@@ -325,22 +313,8 @@ def waitForCall():
         elif (("coronavirus" in givenCmd) or ("corona virus" in givenCmd)):
             COVID19UPDATE()
             waitForCall()
-        elif ((("recognise" in givenCmd)and("my" in givenCmd))and("face" in givenCmd)) :
+        elif ((("recognize" in givenCmd)and("my" in givenCmd))and("face" in givenCmd)) :
             auth_usr = faceAuthentication()
-            waitForCall()
-        elif ('volume' in givenCmd) :
-            speak('Say the new volume from one to one hundred')
-            vol = getNewVolume()
-            engine.setProperty('volume', vol)
-            waitForCall()
-        elif (('what' in givenCmd)and('time' in givenCmd)) :
-            time = datetime.datetime.now()
-            time = str(time).split(' ')
-            time = time[1]
-            time = time.split(':')
-            time = time[0] + time[1] + ' hours'
-            print(time)
-            speak(time)
             waitForCall()
         else :
             speak("Ke bol re la hai tu?")
