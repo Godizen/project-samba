@@ -316,9 +316,9 @@ def Draw(e1=None, e2=None, eventLabels=True) :
             timeLabel = Label(root, text=time, fg="#FFFFFF", bg="#000000", font=("helvetica " + str(int(fontSizeMultiplier * 54))), anchor=W, justify=LEFT)
             temperatureLabel = Label(root, text=weatherInfo[1], fg="#FFFFFF", bg="#000000", font=("helvetica " + str(int(fontSizeMultiplier * 54))), anchor=E, justify=RIGHT)
             placeLabel = Label(root, text=weatherInfo[2], fg="#FFFFFF", bg="#000000", font=("helvetica " + str(int(fontSizeMultiplier * 36))), anchor=E, justify=RIGHT)
-            Infected = Label(root, text=covid19Info[0], fg="#FFFFFF", bg="#000000", font=("helvetica " + str(int(fontSizeMultiplier * 20))), anchor=W, justify=LEFT)
-            Dead = Label(root, text=covid19Info[1], fg="#FFFFFF", bg="#000000", font=("helvetica " + str(int(fontSizeMultiplier * 20))), anchor=W, justify=LEFT)
-            Recovered = Label(root, text=covid19Info[2], fg="#FFFFFF", bg="#000000", font=("helvetica " + str(int(fontSizeMultiplier * 20))), anchor=W, justify=LEFT)
+            Infected.place(x=(1640 * xCoordsMultiplier), y=(550 * yCoordsMultiplier))
+            Dead.place(x=(1640 * xCoordsMultiplier), y=(600 * yCoordsMultiplier))
+            Recovered.place(x=(1640 * xCoordsMultiplier), y=(650 * yCoordsMultiplier))
 
             if(len(headline1)==1) :
                 newsLabel1 = Label(root, text=("1. " + headline1[0]), fg="#FFFFFF", bg="#000000", font=("helvetica " + str(int(fontSizeMultiplier * 20))), anchor=W, justify=LEFT)
